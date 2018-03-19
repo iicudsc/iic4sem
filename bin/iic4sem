@@ -1,0 +1,122 @@
+#!/usr/bin/python3
+# Copyright (C) 2018  Abhinav Saxena <abhinav.saxena@iic.ac.in>
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+def logo(version):
+    print(r"""\
+
+      _____ _____ _____ _  _   _____
+     |_   _|_   _/ ____| || | / ____|
+       | |   | || |    | || || (___   ___ _ __ ___
+       | |   | || |    |__   _\___ \ / _ \ '_ ` _ \
+      _| |_ _| || |____   | | ____) |  __/ | | | | |
+     |_____|_____\_____|  |_||_____/ \___|_| |_| |_|
+
+    Version: {0}
+    Made by Abhinav Saxena
+
+    For Mr. Anil Singh Bafila (c/o Dr. Sanjeev Singh)
+    Institute of Informatics and Communication,
+    University of Delhi, South Campus
+         """.format(iic4sem.__version__))
+
+def on_unhandled_greenlet_exception(dead_greenlet):
+    logger.error('Stopping because %s died: %s', dead_greenlet, dead_greenlet.exception)
+    sys.exit(1)
+
+def setup_logging(log_file, verbose):
+    if verbose:
+        log_level = logging.DEBUG
+    else:
+        log_level = logging.INFO
+
+    log_format = logging.Formatter('%(asctime)-15s %(message)s')
+    console_log = logging.StreamHandler()
+    console_log.setLevel(log_level)
+    console_log.setFormatter(log_format)
+
+    logger.setLevel(log_level)
+    file_log = logging.FileHandler(log_file)
+    file_log.setFormatter(log_format)
+    file_log.setLevel(log_level)
+
+    root_logger = logging.getLogger()
+    root_logger.addHandler(console_log)
+    root_logger.addHandler(file_log)
+
+def main():
+    # main function calling all the classes after creating instances
+    logo()
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("-t", "--template",
+                        help="Name of one of the supplied templates, or the full path to a custom template.",
+                        default=''
+                        )
+    parser.add_argument("-f", "--force",
+                        help="Force use testing config.",
+                        metavar="testing.cfg",
+                        action='store_const',
+                        const=True,
+                        default=False
+    )
+
+    parser.add_argument("-c", "--config",
+                        help="The configuration file to use",
+                        metavar="conpot.cfg"
+                        )
+
+    parser.add_argument("-l", "--logfile",
+                        help="The logfile to use",
+                        default="conpot.log"
+                        )
+    parser.add_argument("-a", "--raw_mib",
+                        help="Path to raw MIB files."
+                             "(will automatically get compiled by build-pysnmp-mib)",
+                        action='append',
+                        default=[]
+                        )
+    parser.add_argument("-m", "--mibpaths",
+                        action='append',
+                        help="Path to compiled PySNMP MIB files."
+                             "(must be compiled with build-pysnmp-mib)",
+                        default=[]
+                        )
+    parser.add_argument('-v', '--verbose', action='store_true', default=False, help='Logs debug messages.')
+    args = parser.parse_args()
+
+    setup_logging(args.logfile, args.verbose)
+
+    config = ConfigParser()
+
+    logger.info('Starting IIC4Sem using the params: %s', None)
+    servers = list()
+    protocol_instance_mapping = (
+        # ('modbus', ModbusServer),
+        # ('s7comm', S7Server),
+    )
+    try:
+        if len(servers) > 0:
+            gevent.wait()
+    except KeyboardInterrupt:
+        logging.info('Stopping IIC4Sem')
+        for server in servers:
+            server.stop()
+
+if __name__ == "__main__":
+    main()
