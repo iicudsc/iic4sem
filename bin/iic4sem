@@ -15,9 +15,29 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+import gevent.monkey
+gevent.monkey.patch_all()
 
-def logo(version):
-    print(r"""\
+import logging
+import os
+import argparse
+import sys
+import pwd
+from configparser import ConfigParser, NoSectionError, NoOptionError
+import gevent
+
+import iic4sem
+from iic4sem.echo_server import EchoServer
+from iic4sem.libevent_server import LibeventServer
+from iic4sem.broadcast_server import BroadcastServer
+from iic4sem.http_server import HTTPServer
+from iic4sem.serial_server import SerialServer
+
+logger = logging.getLogger()
+package_directory = os.path.dirname(os.path.abspath(iic4sem.__file__))
+
+def logo():
+    print(r"""
 
       _____ _____ _____ _  _   _____
      |_   _|_   _/ ____| || | / ____|
@@ -44,7 +64,7 @@ def setup_logging(log_file, verbose):
     else:
         log_level = logging.INFO
 
-    log_format = logging.Formatter('%(asctime)-15s %(message)s')
+    log_format = logging.Formatter('[%(levelname)s:%(asctime)-15s]:%(name)s: %(message)s')
     console_log = logging.StreamHandler()
     console_log.setLevel(log_level)
     console_log.setFormatter(log_format)
@@ -55,61 +75,78 @@ def setup_logging(log_file, verbose):
     file_log.setLevel(log_level)
 
     root_logger = logging.getLogger()
+    root_logger.handlers.clear()  # remove duplicate entries
     root_logger.addHandler(console_log)
     root_logger.addHandler(file_log)
 
 def main():
     # main function calling all the classes after creating instances
     logo()
-
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("-t", "--template",
-                        help="Name of one of the supplied templates, or the full path to a custom template.",
+    parser.add_argument("-m", "--mode",
+                        help="Name of servers to run.",
                         default=''
                         )
-    parser.add_argument("-f", "--force",
-                        help="Force use testing config.",
-                        metavar="testing.cfg",
-                        action='store_const',
-                        const=True,
-                        default=False
-    )
-
     parser.add_argument("-c", "--config",
                         help="The configuration file to use",
-                        metavar="conpot.cfg"
+                        metavar="iic4sem.cfg",
+                        default="iic4sem.cfg"
                         )
-
     parser.add_argument("-l", "--logfile",
                         help="The logfile to use",
-                        default="conpot.log"
-                        )
-    parser.add_argument("-a", "--raw_mib",
-                        help="Path to raw MIB files."
-                             "(will automatically get compiled by build-pysnmp-mib)",
-                        action='append',
-                        default=[]
-                        )
-    parser.add_argument("-m", "--mibpaths",
-                        action='append',
-                        help="Path to compiled PySNMP MIB files."
-                             "(must be compiled with build-pysnmp-mib)",
-                        default=[]
+                        default="iic4sem.log"
                         )
     parser.add_argument('-v', '--verbose', action='store_true', default=False, help='Logs debug messages.')
-    args = parser.parse_args()
 
+    args = parser.parse_args()
+    # setup logging
     setup_logging(args.logfile, args.verbose)
 
+    # Check if the configuration file exists..
+    if not os.path.isfile(args.config):
+        logger.error('Config not found: %s', args.config)
+        sys.exit(1)
+    logger.info('Starting IIC4Sem using configuration found in: %s', args.config)
+
+    # get details from the config file
     config = ConfigParser()
 
-    logger.info('Starting IIC4Sem using the params: %s', None)
+    # Loading default config if config not set.
+    try:
+        directory = package_directory + '/../'
+        args.config = os.path.join(directory, args.config)
+        config.read(args.config)
+    except:
+        logger.exception('\nCould not read config file')
+        sys.exit(1)
+
     servers = list()
     protocol_instance_mapping = (
-        # ('modbus', ModbusServer),
-        # ('s7comm', S7Server),
+        ('echo', EchoServer),
+        ('libevent', LibeventServer),
+        ('http', HTTPServer),
+        ('serial', SerialServer),
+        ('broadcast', BroadcastServer)
     )
+
+    for protocol in protocol_instance_mapping:
+        protocol_name, server_class = protocol
+        if config[protocol_name] and protocol_name != 'serial':
+            host = config[protocol_name]['host']
+            port = int(config[protocol_name]['port'])
+            server = server_class()
+            greenlet = gevent.spawn(server.start, host, port)
+            greenlet.link_exception(on_unhandled_greenlet_exception)
+            servers.append(server)
+            logger.info('Found and enabled %s protocol.', protocol)
+        else:
+            logger.debug('No %s config found. Service will remain unconfigured/stopped.', protocol_name)
+
+    greenlet.link_exception(on_unhandled_greenlet_exception)
+
+    # for key in config['echo']: print(key)
+
     try:
         if len(servers) > 0:
             gevent.wait()
