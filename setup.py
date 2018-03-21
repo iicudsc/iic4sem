@@ -7,6 +7,7 @@ setup(
     version=iic4sem.__version__,
     packages=find_packages(exclude=['*.pyc']),
     scripts=['bin/iic4sem'],
+    url="https://github.com/xandfury/iic4sem",
     license='GPL 3',
     author="Abhinav Saxena",
     author_email="abhinav.saxena@iic.ac.in",
@@ -19,7 +20,6 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
-        "Topic :: Networking",
     ],
     project_urls={
         'Funding': 'http://iic.du.ac.in',

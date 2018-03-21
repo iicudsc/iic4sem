@@ -90,8 +90,7 @@ def main():
                         )
     parser.add_argument("-c", "--config",
                         help="The configuration file to use",
-                        metavar="iic4sem.cfg",
-                        default="iic4sem.cfg"
+                        metavar="iic4sem.cfg"
                         )
     parser.add_argument("-l", "--logfile",
                         help="The logfile to use",
@@ -103,21 +102,18 @@ def main():
     # setup logging
     setup_logging(args.logfile, args.verbose)
 
-    # Check if the configuration file exists..
-    if not os.path.isfile(args.config):
-        logger.error('Config not found: %s', args.config)
-        sys.exit(1)
-    logger.info('Starting IIC4Sem using configuration found in: %s', args.config)
-
     # get details from the config file
     config = ConfigParser()
 
-    # Loading default config if config not set.
+    # Check if the configuration file exists..
     try:
-        directory = package_directory + '/../'
-        args.config = os.path.join(directory, args.config)
+        if not args.config:
+            logger.error('Config not found: %s. Using default config', args.config)
+            args.config = os.path.join(package_directory, 'iic4sem.cfg')
         config.read(args.config)
+        logger.info('Starting IIC4Sem using configuration found in: %s', args.config)
     except:
+        # Loading default config if config not set.
         logger.exception('\nCould not read config file')
         sys.exit(1)
 
