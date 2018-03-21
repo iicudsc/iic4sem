@@ -108,7 +108,7 @@ def main():
     # Check if the configuration file exists..
     try:
         if not args.config:
-            logger.error('Config not found: %s. Using default config', args.config)
+            logger.error('Config not found. Using default config')
             args.config = os.path.join(package_directory, 'iic4sem.cfg')
         config.read(args.config)
         logger.info('Starting IIC4Sem using configuration found in: %s', args.config)

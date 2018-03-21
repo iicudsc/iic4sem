@@ -3,6 +3,13 @@
 This project is for the academic requirement of semester 4 exams of IIC, UDSC.
 
 #### Installation
+Create a virtualenv to install on a clean environment.
+
+```
+$ virtualenv -p python3 venv
+$ source venv/bin/activate
+```
+
 To install this package, use pip.
 
 ```
