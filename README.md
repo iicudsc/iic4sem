@@ -1,6 +1,5 @@
-#### IIC4Sem
-
-[![Python Version](https://img.shields.io/pypi/pyversions/iic4sem.svg)](https://pypi.python.org/pypi/iic4sem)
+## IIC4Sem 
+[![Python Version](https://img.shields.io/pypi/pyversions/iic4sem.svg)](https://pypi.python.org/pypi/iic4sem) 
 [![PyPI version](https://badge.fury.io/py/iic4sem.svg)](https://badge.fury.io/py/iic4sem)
 
 
