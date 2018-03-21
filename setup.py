@@ -23,7 +23,10 @@ setup(
     ],
     project_urls={
         'Funding': 'http://iic.du.ac.in',
-    },  
+    },
+    package_data={
+        "iic4sem": ["iic4sem.cfg"],
+    },
     keywords="IIC UDSC",
     include_package_data=True,
     long_description=open('README.md').read(),

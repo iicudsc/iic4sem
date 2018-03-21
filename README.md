@@ -1,5 +1,9 @@
 #### IIC4Sem
 
+[![Python Version](https://img.shields.io/pypi/pyversions/iic4sem.svg)](https://pypi.python.org/pypi/iic4sem)
+[![PyPI version](https://badge.fury.io/py/iic4sem.svg)](https://badge.fury.io/py/iic4sem)
+
+
 This project is for the academic requirement of semester 4 exams of IIC, UDSC.
 
 #### Installation
@@ -22,6 +26,40 @@ Then simply run `iic4sem` from the command line.
 * Unit Tests
 * Project Work
 * Question 5 - That has to be done in C
+
+
+#### Config Files
+Entire project can be tweaked using the supplied config file. Just change the params in `iic4sem.cfg` to change the desired settings.
+
+Default config file:
+
+```
+[echo]
+host = 127.0.0.1
+port = 16000
+
+[libevent]
+host = 127.0.0.1
+port = 16001
+
+[broadcast]
+host = 127.0.0.1
+port = 16002
+
+[http]
+host = 127.0.0.1
+port = 16003
+
+[serial]
+name = 'test'
+host = 127.0.0.1
+port = 16004
+device = /dev/tty/ACM0
+buad_rate = 9600
+decoder = ''
+# width, parity, stop_bits, xon, rts
+```
+
 
 #### Sample Output
 ```
